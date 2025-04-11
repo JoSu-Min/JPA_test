@@ -27,6 +27,9 @@ public class MemberEntity {
     @Column(name = "user_name", nullable = false, length = 30)
     private String userName;
 
+    @Column(name = "password", nullable = false, length = 100)
+    private String password;
+
     @Column(name = "age")
     private int age;
 
@@ -34,6 +37,7 @@ public class MemberEntity {
 
         this.userId = dto.getUserId();
         this.userName = dto.getUserName();
+        this.password = dto.getPassword();
         this.age = dto.getAge();
 
     }

@@ -22,17 +22,23 @@ public class MemberService {
 
     public int insert(MemberDTO dto) {
         int result = 0;
-        //insert, update
         try{
-            MemberEntity entity = repo.save( new MemberEntity(dto)); // 인터페이스에서 설정한 entity값으로 설정
+            MemberEntity entity = repo.save( new MemberEntity(dto));
             log.info("service entity : {}", entity);
         }catch (Exception e) {
             result =1;
-//            throw new RuntimeException();
             e.printStackTrace();
         }
 
         return result;
+    }
+
+    public MemberDTO login(String userId, String password) {
+        MemberEntity entity = repo.findByUserIdAndPassword(userId, password);
+        if(entity != null) {
+            return new MemberDTO(entity);
+        }
+        return null;
     }
 
     public List<MemberDTO> getList() {
@@ -43,11 +49,6 @@ public class MemberService {
                     .map(m-> new MemberDTO(m))
                     .toList();
         }
-//        List<MemberEntity> listE = repo.findAll(); // findAll = select * 과 동일
-//
-//        for(MemberEntity e : listE){
-//            list.add(new MemberDTO(e));
-//        }
 
         log.info("list entity : {}", listE);
         return  list;
@@ -62,6 +63,19 @@ public class MemberService {
 
     }
 
+    public int updateData(Long number, MemberDTO dto){
+        Optional<MemberEntity> opEntity = repo.findById(number);
+        if(opEntity.isPresent()) {
+            MemberEntity entity = opEntity.get();
+            entity.setUserName(dto.getUserName());
+            entity.setAge(dto.getAge());
+            entity.setPassword(dto.getPassword());
+            repo.save(entity);
+            return 1;
+        }
+        return 0;
+    }
+
     public int deleteData(Long num) {
         int result = 0;
         MemberDTO dto = getData(num);
@@ -71,21 +85,8 @@ public class MemberService {
         }
         return result;
     }
-    public int updateData(String userId, MemberDTO dto){
-        MemberEntity entity = repo.findByUserId(userId);
 
-        log.info("service update : {}", entity);
-        if( entity != null ) {
-            entity.setUserName(dto.getUserName());
-            entity.setAge(dto.getAge());
-            repo.save(entity);
-            return 1;
-        }
-        return 0;
-    }
-
-    public List<MemberDTO> getListPage(int start, int page) {
-//        int page = 3;
+    public List<MemberDTO> getPagedMembers(int start, int page) {
         Pageable pageable = PageRequest.of(start, page,
                                             Sort.by(Sort.Order.desc("number")));
         Page<MemberEntity> pageEntity = repo.findAll(pageable);
@@ -94,29 +95,19 @@ public class MemberService {
                                     .map(m-> new MemberDTO(m))
                                     .toList();
         return list;
-
     }
 
-    public MemberDTO getContents(long number) {
-        MemberEntity entity = repo.findByContent(number); // PK로 값을 가져옴
-//        log.info("entity : {} ", entity);
-        if(entity != null)
-            return new MemberDTO(entity);
-        return null;
-    }
-
-    public int insertContent(MemberDTO dto) {
-        int result = 0;
-        //insert, update
+    public int updateContent(Long number, MemberDTO dto) {
+        int result = 1;
         try{
-            result = repo.insertContent( dto.getUserId(),
-                                         dto.getUserName(),
-                                         dto.getAge()); // 인터페이스에서 설정한 entity값으로 설정
-            log.info("service result : {}", result);
-        }catch (Exception e) {
-            e.printStackTrace();
+            result = repo.updateContent(number,
+                                        dto.getUserName(),
+                                        dto.getAge(),
+                                        dto.getPassword());
+            log.info("update : {} ", result);
+        }catch (Exception e){
+            e.printStackTrace();;
         }
         return result;
     }
-
 }
